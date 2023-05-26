@@ -1,5 +1,8 @@
 #include <opencv2/opencv.hpp>
 
+using namespace std;
+
+
 cv::Mat blendLighten(const cv::Mat& image1, const cv::Mat& image2) {
     // Make sure the input images have the same size
     CV_Assert(image1.size() == image2.size());
@@ -39,24 +42,30 @@ cv::Mat stackModeMedian(const std::vector<cv::Mat>& images) {
     // Create output image of the same size and type as the input images
     cv::Mat stackedImage(images[0].size(), images[0].type());
     
-    // Iterate over each pixel and compute the median
+    // Iterate over each pixel and compute the median for each color channel
     for (int y = 0; y < images[0].rows; ++y) {
         for (int x = 0; x < images[0].cols; ++x) {
-            std::vector<uchar> pixels;
+            std::vector<cv::Vec3b> pixels;
             
             // Collect pixel values from each image in the stack
             for (const cv::Mat& image : images) {
-                pixels.push_back(image.at<uchar>(y, x));
+                pixels.push_back(image.at<cv::Vec3b>(y, x));
             }
             
-            // Sort the pixels
-            std::sort(pixels.begin(), pixels.end());
+            // Sort the pixels for each color channel
+            std::sort(pixels.begin(), pixels.end(),
+                [](const cv::Vec3b& a, const cv::Vec3b& b) {
+                    return a[0] < b[0];  // Sort based on blue channel intensity
+                });
             
-            // Get the median pixel value
-            uchar medianPixel = pixels[pixels.size() / 2];
+            // Get the median pixel value for each color channel
+            cv::Vec3b medianPixel;
+            medianPixel[0] = pixels[pixels.size() / 2][0];  // Blue channel
+            medianPixel[1] = pixels[pixels.size() / 2][1];  // Green channel
+            medianPixel[2] = pixels[pixels.size() / 2][2];  // Red channel
             
-            // Set the median pixel value in the output image
-            stackedImage.at<uchar>(y, x) = medianPixel;
+            // Set the median pixel value in the output image for each color channel
+            stackedImage.at<cv::Vec3b>(y, x) = medianPixel;
         }
     }
     
@@ -81,6 +90,20 @@ std::vector<cv::Mat> convertToCVMat(const std::vector<std::string>& filepaths) {
     return images;
 }
 
+std::vector<cv::Mat> resizeImages(const std::vector<cv::Mat>& images, double scaleFactor) {
+    std::vector<cv::Mat> resizedImages;
+    
+    for (const cv::Mat& image : images) {
+        cv::Size newSize(image.cols * scaleFactor, image.rows * scaleFactor);
+        cv::Mat resizedImage;
+        cv::resize(image, resizedImage, newSize);
+        resizedImages.push_back(resizedImage);
+    }
+    
+    return resizedImages;
+}
+
+
 int main() {
     /*
     cd build
@@ -100,7 +123,7 @@ int main() {
         "../images/_MG_8215.jpg",
     };
     
-    std::vector<cv::Mat> images = convertToCVMat(imagePaths);
+    std::vector<cv::Mat> images = resizeImages(convertToCVMat(imagePaths), 0.5);
     
     cv::Mat resultImage;
     
