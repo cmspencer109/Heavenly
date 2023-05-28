@@ -212,6 +212,43 @@ cv::Mat makePanorama(const std::vector<cv::Mat>& images) {
     return pano;
 }
 
+void show(const cv::Mat& image) {
+    cv::imshow("", image); 
+    cv::waitKey(0);
+}
+
+std::vector<cv::KeyPoint> detectStars(const cv::Mat& image)
+{
+    cv::Mat grayImage;
+    cv::cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
+    
+    cv::Mat mask;
+//  cv::threshold(grayImage, mask, 127, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C);
+    cv::threshold(grayImage, mask, 127, 255, cv::THRESH_BINARY_INV);
+    
+//  show(mask);
+    
+    cv::SimpleBlobDetector::Params params;
+    params.filterByArea = true;
+    params.minArea = 10;
+    params.maxArea = 100;
+//  params.filterByCircularity = true;
+//  params.minCircularity = 0.1;
+    
+    cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
+    std::vector<cv::KeyPoint> keypoints;
+    detector->detect(mask, keypoints);
+    
+    for (cv::KeyPoint& kp : keypoints) {
+        kp.size = 100;
+    }
+    
+    cv::Mat maskWithKeypoints;
+    cv::drawKeypoints(mask, keypoints, maskWithKeypoints, cv::Scalar(0, 0, 255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+    show(maskWithKeypoints);
+    
+    return keypoints;
+}
 
 
 //int main() {
@@ -220,6 +257,75 @@ int main(int argc, char** argv) {
     cd build
     make && ./Heavenly
     */
+    
+    cv::Mat image = cv::imread("../images/milkyway/_MG_3534.jpg");
+//  cv::Mat image = cv::imread("../images/startrails/_MG_8206.jpg");
+    
+    std::vector<cv::KeyPoint> stars = detectStars(image);
+    
+    for (cv::KeyPoint& kp : stars) {
+        kp.size = 100;
+    }
+    
+    // Draw keypoints on the image
+    cv::Mat imageWithKeypoints;
+    cv::drawKeypoints(image, stars, imageWithKeypoints, cv::Scalar(0, 0, 255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+    
+    
+    // Display the image with keypoints
+//  cv::imshow("Stars", imageWithKeypoints);
+//  cv::waitKey(0);
+    
+//  std::vector<cv::Mat> images = {
+//      cv::imread("../images/milkyway/_MG_3534.jpg"),
+//      cv::imread("../images/milkyway/_MG_3535.jpg"),
+//      cv::imread("../images/milkyway/_MG_3536.jpg"),
+//      cv::imread("../images/milkyway/_MG_3537.jpg"),
+//      cv::imread("../images/milkyway/_MG_3538.jpg"),
+//      cv::imread("../images/milkyway/_MG_3539.jpg"),
+//      cv::imread("../images/milkyway/_MG_3540.jpg"),
+//      cv::imread("../images/milkyway/_MG_3541.jpg"),
+//      cv::imread("../images/milkyway/_MG_3542.jpg"),
+//      cv::imread("../images/milkyway/_MG_3543.jpg"),
+//  };
+    
+//  images = resizeImages(images, 0.5);
+    
+    
+//  cv::Mat img1 = cv::imread("../images/milkyway/_MG_3534.jpg");
+//  cv::Mat img2 = cv::imread("../images/milkyway/_MG_3543.jpg");
+    
+//  std::vector<cv::Mat> masks = {
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//      cv::imread("../images/milkyway/mask.jpg"),
+//  };
+    
+    
+//  cv::Mat pano;
+//  cv::Ptr<cv::Stitcher> stitcher = cv::Stitcher::create(cv::Stitcher::PANORAMA);
+//  
+//  cv::Stitcher::Status status = stitcher->stitch(images, masks, pano);
+//  
+//  if (status != cv::Stitcher::OK)
+//  {
+//      cout << "Can't stitch images, error code = " << int(status) << endl;
+//      return EXIT_FAILURE;
+//  }
+//  
+//  cv::imwrite("pano.jpg", pano);
+//  
+//  cv::imshow("", pano);
+//  cv::waitKey(0);
+//  
+    
     
 //  std::vector<std::string> imagePaths = {
 //      "../images/_MG_8206.jpg",
@@ -325,34 +431,40 @@ int main(int argc, char** argv) {
 //  cv::waitKey(0);
 //  
     
-    
-    std::vector<cv::Mat> images = {
-        cv::imread("../images/milkyway/_MG_3534.jpg"),
-        cv::imread("../images/milkyway/_MG_3535.jpg"),
-        cv::imread("../images/milkyway/_MG_3536.jpg"),
-        cv::imread("../images/milkyway/_MG_3537.jpg"),
-        cv::imread("../images/milkyway/_MG_3538.jpg"),
-        cv::imread("../images/milkyway/_MG_3539.jpg"),
-        cv::imread("../images/milkyway/_MG_3540.jpg"),
-        cv::imread("../images/milkyway/_MG_3541.jpg"),
-        cv::imread("../images/milkyway/_MG_3542.jpg"),
-        cv::imread("../images/milkyway/_MG_3543.jpg"),
-    };
-    
-    std::vector<cv::Mat> masks = {
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-        cv::imread("../images/milkyway/mask.jpg"),
-    };
+//  
+//  std::vector<cv::Mat> inputImages = {
+//      cv::imread("../images/milkyway/_MG_3534.jpg"),
+//      cv::imread("../images/milkyway/_MG_3535.jpg"),
+//      cv::imread("../images/milkyway/_MG_3536.jpg"),
+//      cv::imread("../images/milkyway/_MG_3537.jpg"),
+//      cv::imread("../images/milkyway/_MG_3538.jpg"),
+//      cv::imread("../images/milkyway/_MG_3539.jpg"),
+//      cv::imread("../images/milkyway/_MG_3540.jpg"),
+//      cv::imread("../images/milkyway/_MG_3541.jpg"),
+//      cv::imread("../images/milkyway/_MG_3542.jpg"),
+//      cv::imread("../images/milkyway/_MG_3543.jpg"),
+//  };
+//  
+//  inputImages = maskImages(inputImages, cv::imread("../images/milkyway/mask.jpg"));
+//  
+//  for (size_t i = 0; i < inputImages.size(); i++) {
+//      std::string filename = "inputImages" + std::to_string(i + 1) + ".jpg";
+//      cv::imshow("", inputImages[i]);
+//      cv::waitKey(0);
+//  }
+//  
     
     
+//  std::vector<cv::Mat> alignedImages;
+//  autoAlignLayers(inputImages, alignedImages);
+//  
+//  // Save the aligned images
+//  for (size_t i = 0; i < alignedImages.size(); i++) {
+//      std::string filename = "aligned_image" + std::to_string(i + 1) + ".jpg";
+//      cv::imshow("", alignedImages[i]);
+//      cv::waitKey(0);
+//      cv::imwrite(filename, alignedImages[i]);
+//  }
     
     
 //  std::vector<cv::Mat> p = {
