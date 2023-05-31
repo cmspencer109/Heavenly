@@ -3,6 +3,7 @@
 
 
 using namespace std;
+using namespace cv;
 
 
 cv::Mat blendLighten(const cv::Mat& image1, const cv::Mat& image2) {
@@ -219,21 +220,41 @@ void show(const cv::Mat& image) {
 
 std::vector<cv::KeyPoint> detectStars(const cv::Mat& image)
 {
+    // Convert image to grayscale
     cv::Mat grayImage;
     cv::cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
     
-    cv::Mat mask;
-//  cv::threshold(grayImage, mask, 127, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C);
-    cv::threshold(grayImage, mask, 127, 255, cv::THRESH_BINARY_INV);
+    // TODO: Make sky a standard brightness before applying binary mask
     
-//  show(mask);
+    // Thresholding
+    cv::Mat binaryMask;
+    cv::threshold(grayImage, binaryMask, 150, 255, cv::THRESH_BINARY);
+    
+//  cv::adaptiveThreshold(grayImage, binaryMask, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY, 21, 10);
+//  cv::adaptiveThreshold(enhancedImage, binaryMask, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 51, 2);
+//  show(binaryMask);
+    
+    // Morphological operations
+//  cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+//  cv::Mat refinedMask;
+//  cv::morphologyEx(binaryMask, refinedMask, cv::MORPH_OPEN, kernel);
+    
+    
+
+    cv::Mat dilatedMask;
+    cv::dilate(binaryMask, dilatedMask, cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3,3)));
+    
+    cv::Mat mask = dilatedMask;
+    
+    // return std::vector<cv::KeyPoint>(); // return early for testing
     
     cv::SimpleBlobDetector::Params params;
     params.filterByArea = true;
-    params.minArea = 10;
-    params.maxArea = 100;
-//  params.filterByCircularity = true;
-//  params.minCircularity = 0.1;
+    params.minArea = 1; // 10
+    params.maxArea = 100;    
+    params.filterByColor = true;
+    params.blobColor = 255;
+    
     
     cv::Ptr<cv::SimpleBlobDetector> detector = cv::SimpleBlobDetector::create(params);
     std::vector<cv::KeyPoint> keypoints;
@@ -258,23 +279,59 @@ int main(int argc, char** argv) {
     make && ./Heavenly
     */
     
-    cv::Mat image = cv::imread("../images/milkyway/_MG_3534.jpg");
+    // Read the input image
+    Mat image = imread("../stars.jpg");
+    show(image);
+    
+    // Convert the image to grayscale
+    Mat gray;
+    cvtColor(image, gray, COLOR_BGR2GRAY);
+    show(gray);
+    
+    // Apply Gaussian blur to reduce elongation
+    Mat blurred;
+    GaussianBlur(gray, blurred, Size(0, 0), 2.0);
+    show(blurred);
+    
+    // Threshold the blurred image to create a binary mask
+    Mat binary;
+    threshold(blurred, binary, 127, 255, THRESH_BINARY);
+    show(binary);
+    
+    // Find contours in the binary mask
+    std::vector<std::vector<Point>> contours;
+    findContours(binary, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+    
+    // Draw filled circles on the original image using the contours
+    for (const auto& contour : contours)
+        {
+            Point2f center;
+            float radius;
+            minEnclosingCircle(contour, center, radius);
+            
+            // Draw a filled circle
+            circle(image, center, static_cast<int>(radius), Scalar(255, 0, 0), FILLED);
+        }
+    
+    // Display the result
+    imshow("Round Stars", image);
+    waitKey(0);
+    
+    return 0;
+    
+//  cv::Mat image = cv::imread("../images/milkyway/_MG_3534.jpg");
 //  cv::Mat image = cv::imread("../images/startrails/_MG_8206.jpg");
-    
-    std::vector<cv::KeyPoint> stars = detectStars(image);
-    
-    for (cv::KeyPoint& kp : stars) {
-        kp.size = 100;
-    }
-    
-    // Draw keypoints on the image
-    cv::Mat imageWithKeypoints;
-    cv::drawKeypoints(image, stars, imageWithKeypoints, cv::Scalar(0, 0, 255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
-    
-    
-    // Display the image with keypoints
-//  cv::imshow("Stars", imageWithKeypoints);
-//  cv::waitKey(0);
+//  
+//  std::vector<cv::KeyPoint> stars = detectStars(image);
+//  
+//  for (cv::KeyPoint& kp : stars) {
+//      kp.size = 100;
+//  }
+//  
+//  // Draw keypoints on the image
+//  cv::Mat imageWithKeypoints;
+//  cv::drawKeypoints(image, stars, imageWithKeypoints, cv::Scalar(0, 0, 255), cv::DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+//  show(imageWithKeypoints);
     
 //  std::vector<cv::Mat> images = {
 //      cv::imread("../images/milkyway/_MG_3534.jpg"),
