@@ -6,6 +6,12 @@ set(CMAKE_CXX_STANDARD 11)
 # Find OpenCV package
 find_package(OpenCV REQUIRED)
 
-# Add executable and link OpenCV libraries
-add_executable(Heavenly main.cpp)
-target_link_libraries(Heavenly ${OpenCV_LIBS})
+# Find wxWidgets package
+find_package(wxWidgets REQUIRED COMPONENTS core base)
+
+# Include wxWidgets macros
+include(${wxWidgets_USE_FILE})
+
+# Add executable and link libraries
+add_executable(Heavenly app.cpp)
+target_link_libraries(Heavenly ${OpenCV_LIBS} ${wxWidgets_LIBRARIES})

@@ -280,44 +280,44 @@ int main(int argc, char** argv) {
     */
     
     // Read the input image
-    Mat image = imread("../stars.jpg");
-    show(image);
+    // Mat image = imread("../stars.jpg");
+    // show(image);
     
-    // Convert the image to grayscale
-    Mat gray;
-    cvtColor(image, gray, COLOR_BGR2GRAY);
-    show(gray);
+    // // Convert the image to grayscale
+    // Mat gray;
+    // cvtColor(image, gray, COLOR_BGR2GRAY);
+    // show(gray);
     
-    // Apply Gaussian blur to reduce elongation
-    Mat blurred;
-    GaussianBlur(gray, blurred, Size(0, 0), 2.0);
-    show(blurred);
+    // // Apply Gaussian blur to reduce elongation
+    // Mat blurred;
+    // GaussianBlur(gray, blurred, Size(0, 0), 2.0);
+    // show(blurred);
     
-    // Threshold the blurred image to create a binary mask
-    Mat binary;
-    threshold(blurred, binary, 127, 255, THRESH_BINARY);
-    show(binary);
+    // // Threshold the blurred image to create a binary mask
+    // Mat binary;
+    // threshold(blurred, binary, 127, 255, THRESH_BINARY);
+    // show(binary);
     
-    // Find contours in the binary mask
-    std::vector<std::vector<Point>> contours;
-    findContours(binary, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+    // // Find contours in the binary mask
+    // std::vector<std::vector<Point>> contours;
+    // findContours(binary, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
     
-    // Draw filled circles on the original image using the contours
-    for (const auto& contour : contours)
-        {
-            Point2f center;
-            float radius;
-            minEnclosingCircle(contour, center, radius);
+    // // Draw filled circles on the original image using the contours
+    // for (const auto& contour : contours)
+    //     {
+    //         Point2f center;
+    //         float radius;
+    //         minEnclosingCircle(contour, center, radius);
             
-            // Draw a filled circle
-            circle(image, center, static_cast<int>(radius), Scalar(255, 0, 0), FILLED);
-        }
+    //         // Draw a filled circle
+    //         circle(image, center, static_cast<int>(radius), Scalar(255, 0, 0), FILLED);
+    //     }
     
-    // Display the result
-    imshow("Round Stars", image);
-    waitKey(0);
+    // // Display the result
+    // imshow("Round Stars", image);
+    // waitKey(0);
     
-    return 0;
+    // return 0;
     
 //  cv::Mat image = cv::imread("../images/milkyway/_MG_3534.jpg");
 //  cv::Mat image = cv::imread("../images/startrails/_MG_8206.jpg");
